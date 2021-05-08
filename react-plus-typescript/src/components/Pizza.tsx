@@ -1,44 +1,30 @@
 import React from 'react';
 import PizzaCSS from './Pizza.module.css';
-import { useSetState } from './AppState';
+import { useStateDispatch } from './AppState';
+import { Pizza } from '../types';
+import { AddToCartProps, withAddToCart } from './AddToCart';
 
-interface Pizza {
-    id: number;
-    name: string;
-    description: string;
-    price: number;
-}
+// interface Pizza {
+//     id: number;
+//     name: string;
+//     description: string;
+//     price: number;
+// }
 
-interface Props {
+interface Props extends AddToCartProps {
     pizza: Pizza
 }
 
-const Pizza: React.FC<Props> = ({ pizza }) => {
-    const setState = useSetState();
+const PizzaItem: React.FC<Props> = ({ pizza, addToCart }) => {
+    // const dispatch = useStateDispatch()
     const handleAddToCartClick = () => {
-        setState((state) => {
-            const itemExists = state.cart.items.find((item)=>item.id === pizza.id);
-            console.log(itemExists)
-            return {
-                ...state,
-                cart: {
-                    ...state.cart,
-                    items: 
-                    itemExists ?
-                        state.cart.items.map(item => {
-                            if(item.id === pizza.id) {
-                                return {...item, quantity: item.quantity + 1}
-                            }
-                            return item
-                        })
-                    :
-                        [
-                            ...state.cart.items,
-                            {id: pizza.id, name: pizza.name, price: pizza.price, quantity: 1}
-                        ]
-                }
-            }
-        })
+        addToCart({ id: pizza.id, name: pizza.name, price: pizza.price })
+        // dispatch({
+        //     type: 'ADD_TO_CART',
+        //     payload: {
+        //         item: {id: pizza.id, name: pizza.name, price: pizza.price}
+        //     }
+        // })
     }
     return (
         <li className={PizzaCSS.container}>
@@ -50,4 +36,4 @@ const Pizza: React.FC<Props> = ({ pizza }) => {
     );
 };
 
-export default Pizza;
+export default withAddToCart(PizzaItem);
