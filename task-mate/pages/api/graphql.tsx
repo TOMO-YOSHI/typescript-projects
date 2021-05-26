@@ -1,123 +1,174 @@
-import { ApolloServer, gql, IResolvers } from 'apollo-server-micro';
-import mysql from 'serverless-mysql';
-import { OkPacket } from 'mysql';
+import { ApolloServer, gql, UserInputError } from 'apollo-server-micro';
+// import mysql from 'serverless-mysql';
+import { db } from '../../backend/db';
+// import { OkPacket } from 'mysql';
+// import { Resolvers, TaskStatus } from '../../generated/graphql-backend';
+import { schema } from '../../backend/schema';
 
-const typeDefs = gql`
-  enum TaskStatus {
-    active
-    completed
-  }
+// const typeDefs = gql`
+//   enum TaskStatus {
+//     active
+//     completed
+//   }
 
-  type Task {
-    id: Int!
-    title: String!
-    status: TaskStatus!
-  }
+//   type Task {
+//     id: Int!
+//     title: String!
+//     status: TaskStatus!
+//   }
 
-  input CreateTaskInput {
-    title: String!
-  }
+//   input CreateTaskInput {
+//     title: String!
+//   }
 
-  input UpdateTaskInput {
-    id: Int!
-    title: String
-    status: TaskStatus
-  }
+//   input UpdateTaskInput {
+//     id: Int!
+//     title: String
+//     status: TaskStatus
+//   }
 
-  type Query {
-    tasks(status: TaskStatus): [Task!]!
-    task(id: Int!): Task
-  }
+//   type Query {
+//     tasks(status: TaskStatus): [Task!]!
+//     task(id: Int!): Task
+//   }
 
-  type Mutation {
-    createTask(input: CreateTaskInput!): Task
-    updateTask(inpupt: UpdateTaskInput!): Task
-    deleteTask(id: Int!): Task
-  }
-`
+//   type Mutation {
+//     createTask(input: CreateTaskInput!): Task
+//     updateTask(input: UpdateTaskInput!): Task
+//     deleteTask(id: Int!): Task
+//   }
+// `
 
-interface ApolloContext {
-  db: mysql.ServerlessMysql;
-}
+// interface ApolloContext {
+//   db: mysql.ServerlessMysql;
+// }
 
-enum TaskStatus {
-  active = 'active',
-  completed = 'completed'
-}
+// // enum TaskStatus {
+// //   active = 'active',
+// //   completed = 'completed'
+// // }
 
-interface Task {
-  id: number;
-  title: string;
-  status: TaskStatus;
-}
+// // interface Task {
+// //   id: number;
+// //   title: string;
+// //   status: TaskStatus;
+// // }
 
-interface TaskDbRow {
-  id: number;
-  title: string;
-  task_status: TaskStatus;
-}
+// interface TaskDbRow {
+//   id: number;
+//   title: string;
+//   task_status: TaskStatus;
+// }
 
-type TasksDbQueryResult = TaskDbRow[];
+// type TasksDbQueryResult = TaskDbRow[];
 
-const resolvers: IResolvers<any, ApolloContext> = {
-  Query: {
-    async tasks(parent, args: { status?: TaskStatus }, context): Promise<Task[]> {
-      const { status } = args;
-      let query = 'SELECT id, title, task_status FROM tasks';
-      const queryParams: string[] = [];
-      if(status) {
-        query += ' WHERE task_status = ?';
-        queryParams.push(status);
-      }
-      console.log(query)
-      const tasks = await context.db.query<TasksDbQueryResult>(
-        query,
-        queryParams
-        );
-      await db.end();
-      return tasks.map(({id, title, task_status}) => ({
-        id,
-        title,
-        status: task_status
-      }));
-    },
-    task(parent, args, context) {
-      return null;
-    },
-  },
-  Mutation: {
-    async createTask(parent, args: { input: {title: string} }, context): Promise<Task> {
-      const { input } = args;
-      const task = await context.db.query<OkPacket>(
-        `insert into tasks(title, task_status) values(?, ?)`,
-        [input.title, TaskStatus.active]
-      );
-      return {
-        id: task.insertId,
-        title: input.title,
-        status: TaskStatus.active
-      };
-    },
-    updateTask(parent, args, context) {
-      return null;
-    },
-    deleteTask(parent, args, context) {
-      return null;
-    }
-  }
-}
+// type TaskDbQueryResult = TaskDbRow[];
 
-const db = mysql({
-  config: {
-    host: process.env.MYSQL_HOST,
-    user: process.env.MYSQL_USER,
-    database: process.env.MYSQL_DATABASE,
-    password: process.env.MYSQL_PASSWORD,
-    port: 3333,
-  }
-})
+// const getTaskById = async (id: number, db: mysql.ServerlessMysql) => {
+//   const tasks = await db.query<TaskDbQueryResult>(
+//     'select id, title, task_status from tasks where id = ?', [id]);
+//   return tasks.length
+//     ? {
+//       id: tasks[0].id,
+//       title: tasks[0].title,
+//       status: tasks[0].task_status
+//     }
+//     : null;
+// }
 
-const apolloServer = new ApolloServer({ typeDefs, resolvers, context: { db } })
+// const resolvers: Resolvers<ApolloContext> = {
+//   Query: {
+//     async tasks(parent, args, context) {
+//       const { status } = args;
+//       let query = 'SELECT id, title, task_status FROM tasks';
+//       const queryParams: string[] = [];
+//       if(status) {
+//         query += ' WHERE task_status = ?';
+//         queryParams.push(status);
+//       }
+//       console.log(query)
+//       const tasks = await context.db.query<TasksDbQueryResult>(
+//         query,
+//         queryParams
+//         );
+//       await db.end();
+//       return tasks.map(({id, title, task_status}) => ({
+//         id,
+//         title,
+//         status: task_status
+//       }));
+//     },
+//     async task(parent, args, context) {
+//       return await getTaskById(args.id, context.db);
+//     },
+//   },
+//   Mutation: {
+//     async createTask(parent, args, context) {
+//       const { input } = args;
+//       const task = await context.db.query<OkPacket>(
+//         `insert into tasks(title, task_status) values(?, ?)`,
+//         [input.title, TaskStatus.Active]
+//       );
+//       return {
+//         id: task.insertId,
+//         title: input.title,
+//         status: TaskStatus.Active
+//       };
+//     },
+//     async updateTask(parent, args, context) {
+//       const columns: string[] = [];
+//       const sqlParams: any[] = [];
+
+//       if(args.input.title) {
+//         columns.push('title = ?');
+//         sqlParams.push(args.input.title);
+//       }
+
+//       if (args.input.status) {
+//         columns.push('task_status = ?');
+//         sqlParams.push(args.input.status);
+//       }
+
+//       sqlParams.push(args.input.id);
+
+//       await context.db.query(
+//         `UPDATE tasks SET ${columns.join(',')} WHERE id = ?`,
+//         sqlParams
+//       );
+
+//       const updatedTask = await getTaskById(args.input.id, context.db)
+
+//       return updatedTask;
+//     },
+//     async deleteTask(parent, args, context) {
+//       const task = await getTaskById(args.id, context.db);
+
+//       if(!task) {
+//         throw new UserInputError('Could not find your task.');
+//       }
+
+//       await context.db.query(
+//         'DELETE FROM tasks WHERE id = ?',
+//         [args.id]
+//       );
+
+//       return task;
+//     }
+//   }
+// }
+
+// const db = mysql({
+//   config: {
+//     host: process.env.MYSQL_HOST,
+//     user: process.env.MYSQL_USER,
+//     database: process.env.MYSQL_DATABASE,
+//     password: process.env.MYSQL_PASSWORD,
+//     port: process.env.MYSQL_PORT
+//   }
+// })
+
+// const apolloServer = new ApolloServer({ typeDefs, resolvers, context: { db } })
+const apolloServer = new ApolloServer({ schema, context: { db } })
 
 export const config = {
   api: {
