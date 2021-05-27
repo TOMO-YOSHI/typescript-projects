@@ -84,6 +84,8 @@ export const resolvers: Resolvers<ApolloContext> = {
             const columns: string[] = [];
             const sqlParams: any[] = [];
 
+            // throw new Error('Hello World');
+
             if (args.input.title) {
                 columns.push('title = ?');
                 sqlParams.push(args.input.title);
@@ -107,6 +109,8 @@ export const resolvers: Resolvers<ApolloContext> = {
         },
         async deleteTask(parent, args, context) {
             const task = await getTaskById(args.id, context.db);
+
+            // throw new Error('Hello World');
 
             if (!task) {
                 throw new UserInputError('Could not find your task.');
