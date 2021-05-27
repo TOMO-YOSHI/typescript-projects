@@ -1,55 +1,70 @@
-import { gql, useQuery } from '@apollo/client'
-import Head from 'next/head'
-import { useReducer } from 'react'
-import { initializeApollo } from '../lib/client'
-import styles from '../styles/Home.module.css'
+export { default, getServerSideProps } from './[status]';
 
-const TasksQueryDocument = gql`
-  query Tasks {
-  tasks {
-    id
-    title
-    status
-  }
-}
-`
+// // import { gql, useQuery } from '@apollo/client'
+// import Head from 'next/head'
+// // import { useReducer } from 'react'
+// import { TasksDocument, useTasksQuery } from '../generated/graphql-frontend'
+// import { initializeApollo } from '../lib/client'
+// import TaskList from '../components/TaskList';
+// import CreateTaskForm from '../components/CreateTaskForm';
+// import TaskFilter from '../components/TaskFilter';
+// // import styles from '../styles/Home.module.css'
 
-interface TasksQuery {
-  tasks: {id: number; title: string; status: string}[];
-}
+// // const TasksQueryDocument = gql`
+// //   query Tasks {
+// //   tasks {
+// //     id
+// //     title
+// //     status
+// //   }
+// // }
+// // `
 
-export default function Home() {
-  const result = useQuery<TasksQuery>(TasksQueryDocument);
-  const tasks = result.data?.tasks;
-  return (
-    <div className={styles.container}>
-      <Head>
-        <title>Tasks</title>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      {
-        tasks && tasks.length > 0 && tasks.map((task) => {
-          return (
-            <div key={task.id}>
-              {task.title} ({task.status})
-            </div>
-          )
-        })
-      }
-    </div>
-  )
-}
+// interface TasksQuery {
+//   tasks: {id: number; title: string; status: string}[];
+// }
 
-export const getStaticProps = async() => {
-  const apolloClient = initializeApollo();
+// export default function Home() {
+//   // const result = useQuery<TasksQuery>(TasksQueryDocument);
+//   const result = useTasksQuery();
+//   const tasks = result.data?.tasks;
 
-  await apolloClient.query<TasksQuery>({
-    query: TasksQueryDocument,
-  });
+//   return (
+//     <div>
+//       <Head>
+//         <title>Tasks</title>
+//         <link rel="icon" href="/favicon.ico" />
+//       </Head>
+//       <CreateTaskForm onSuccess={result.refetch} />
+//       {
+//         result.loading ? (
+//           <p>Loading tasks...</p>
+//         ) : result.error ? (
+//           <p>An error occured.</p>
+//         ) :
+//         tasks && 
+//         tasks.length > 0 ? (
+//           <TaskList tasks={tasks} />
+//         ) : (
+//           <p className="no-tasks-message">You've got no tasks.</p>
+//         )
+//       }
+//       <TaskFilter />
+//     </div>
+//   )
+// }
 
-  return {
-    props: {
-      initializeApolloState: apolloClient.cache.extract(),
-    }
-  };
-}
+// export const getStaticProps = async() => {
+//   const apolloClient = initializeApollo();
+
+//   await apolloClient.query<TasksQuery>({
+//     // query: TasksQueryDocument,
+//     query: TasksDocument,
+//   });
+
+//   return {
+//     props: {
+//       initializeApolloState: apolloClient.cache.extract(),
+//     }
+//   };
+// }
